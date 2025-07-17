@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sohbete Katıl - PULSTAR</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="brand">
+                <h1 class="brand-title">PULSTAR</h1>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">Ana Sayfa</a>
+                <button id="themeToggle" class="theme-toggle" title="Tema Değiştir">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="join-container">
+            <div class="join-header">
+                <h1 class="join-title">Sohbete Katıl</h1>
+                <p class="join-subtitle">Kullanıcı adınızı seçin ve sohbet odasına katılın</p>
+            </div>
+
+            <div class="join-form">
+                <div class="username-section">
+                    <label for="usernameInput" class="input-label">Kullanıcı Adı</label>
+                    <div class="username-input-group">
+                        <input type="text" id="usernameInput" class="username-input" placeholder="Kullanıcı adınızı girin..." maxlength="20">
+                        <button id="randomUsernameBtn" class="random-btn" title="Rastgele kullanıcı adı">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path d="M16 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6C4.89543 4 6 4 6 4H8M16 4L12 8L8 4M16 4V8H8V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="username-note">3-20 karakter arası, özel karakterler kullanmayın</p>
+                </div>
+
+                <div class="room-selection">
+                    <h3 class="section-title">Oda Seçimi</h3>
+                    <div class="room-options">
+                        <div class="room-option active" data-room="general">
+                            <div class="room-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21M23 21V19C23 16.7909 21.2091 15 19 15H17M13 7C13 9.20914 10.7614 11 8 11C5.23858 11 3 9.20914 3 7C3 4.79086 5.23858 3 8 3C10.7614 3 13 4.79086 13 7ZM19 7C19 8.65685 17.6569 10 16 10C14.3431 10 13 8.65685 13 7C13 5.34315 14.3431 4 16 4C17.6569 4 19 5.34315 19 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="room-info">
+                                <h4>Genel Sohbet</h4>
+                                <p>Herkese açık ana sohbet odası</p>
+                                <span class="room-users" id="generalUsers">0 kullanıcı</span>
+                            </div>
+                        </div>
+
+                        <div class="room-option" data-room="private">
+                            <div class="room-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M16 14V10C16 7.79086 14.2091 6 12 6C9.79086 6 8 7.79086 8 10V14M5 14C3.89543 14 3 14.8954 3 16V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V16C21 14.8954 20.1046 14 19 14H5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="room-info">
+                                <h4>Özel Oda</h4>
+                                <p>Oda kodu ile katılım</p>
+                                <input type="text" id="roomCodeInput" class="room-code-input" placeholder="Oda kodunu girin..." maxlength="10" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="join-actions">
+                    <button id="joinChatBtn" class="join-btn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Sohbete Katıl
+                    </button>
+                    <a href="/create" class="create-room-link">Veya yeni oda oluştur</a>
+                </div>
+            </div>
+
+            <div class="chat-rules">
+                <h3>Sohbet Kuralları</h3>
+                <ul>
+                    <li>Saygılı ve kibar bir dil kullanın</li>
+                    <li>Küfür ve hakaret yasaktır</li>
+                    <li>Spam mesaj göndermeyin</li>
+                    <li>Kişisel bilgilerinizi paylaşmayın</li>
+                    <li>Diğer kullanıcıları rahatsız etmeyin</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tema değiştirme
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        // Tema durumunu localStorage'dan al
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        body.classList.toggle('light-theme', savedTheme === 'light');
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            const currentTheme = body.classList.contains('light-theme') ? 'light' : 'dark';
+            localStorage.setItem('theme', currentTheme);
+        });
+
+        // DOM elementleri
+        const usernameInput = document.getElementById('usernameInput');
+        const randomUsernameBtn = document.getElementById('randomUsernameBtn');
+        const roomOptions = document.querySelectorAll('.room-option');
+        const roomCodeInput = document.getElementById('roomCodeInput');
+        const joinChatBtn = document.getElementById('joinChatBtn');
+        const generalUsers = document.getElementById('generalUsers');
+
+        // Rastgele kullanıcı adları
+        const randomUsernames = [
+            'GizliKullanıcı', 'AnonimSohbet', 'GizliMesaj', 'BilinmezKişi', 'SırKullanıcı',
+            'GizliKimlik', 'AnonimKişi', 'GizliSohbet', 'BilinmezKullanıcı', 'SırKişi',
+            'GizliProfil', 'AnonimProfil', 'GizliKimse', 'BilinmezSohbet', 'SırProfil',
+            'GizliKişi', 'AnonimKimlik', 'GizliUser', 'BilinmezKimlik', 'SırUser'
+        ];
+
+        // Rastgele kullanıcı adı oluştur
+        randomUsernameBtn.addEventListener('click', () => {
+            const randomName = randomUsernames[Math.floor(Math.random() * randomUsernames.length)];
+            const randomNumber = Math.floor(Math.random() * 9999) + 1;
+            usernameInput.value = randomName + randomNumber;
+            checkFormValidity();
+        });
+
+        // Oda seçimi
+        roomOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                roomOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                const roomType = option.dataset.room;
+                if (roomType === 'private') {
+                    roomCodeInput.style.display = 'block';
+                    roomCodeInput.focus();
+                } else {
+                    roomCodeInput.style.display = 'none';
+                }
+                checkFormValidity();
+            });
+        });
+
+        // Form doğrulama
+        function checkFormValidity() {
+            const username = usernameInput.value.trim();
+            const selectedRoom = document.querySelector('.room-option.active');
+            const roomType = selectedRoom.dataset.room;
+            const roomCode = roomCodeInput.value.trim();
+
+            let isValid = username.length >= 3 && username.length <= 20;
+            
+            if (roomType === 'private') {
+                isValid = isValid && roomCode.length >= 4;
+            }
+
+            joinChatBtn.disabled = !isValid;
+        }
+
+        // Input event listeners
+        usernameInput.addEventListener('input', checkFormValidity);
+        roomCodeInput.addEventListener('input', checkFormValidity);
+
+        // Kullanıcı adı filtreleme
+        usernameInput.addEventListener('input', (e) => {
+            // Sadece harf, rakam ve türkçe karakterler
+            e.target.value = e.target.value.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ0-9]/g, '');
+        });
+
+        // Oda kodu filtreleme
+        roomCodeInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        });
+
+        // Sohbete katıl
+        joinChatBtn.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            const selectedRoom = document.querySelector('.room-option.active');
+            const roomType = selectedRoom.dataset.room;
+            const roomCode = roomCodeInput.value.trim();
+
+            // Kullanıcı bilgilerini localStorage'a kaydet
+            localStorage.setItem('username', username);
+            localStorage.setItem('roomType', roomType);
+            if (roomType === 'private') {
+                localStorage.setItem('roomCode', roomCode);
+            }
+
+            // Chat sayfasına yönlendir
+            window.location.href = '/chat';
+        });
+
+        // Sayfa yüklendiğinde genel oda kullanıcı sayısını al
+        // Bu gerçek bir uygulamada WebSocket ile güncellenecek
+        setTimeout(() => {
+            generalUsers.textContent = Math.floor(Math.random() * 50) + 10 + ' kullanıcı';
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sohbet - PULSTAR</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="chat-page">
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-left">
+                <button id="homeBtn" class="icon-btn" title="Ana Sayfa">
+                    <span>🏠</span>
+                </button>
+                <div class="room-info">
+                    <div class="connection-status">
+                        <div class="status-indicator" id="statusIndicator"></div>
+                        <span id="statusText">Bağlanıyor...</span>
+                    </div>
+                    <div class="room-details">
+                        <span id="roomInfo" class="room-name"></span>
+                        <span id="userCount" class="user-count"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="themeToggle" class="icon-btn" title="Tema Değiştir">
+                    <span>🌙</span>
+                </button>
+                <button id="newChatBtn" class="new-chat-btn">
+                    <span>Yeni Sohbet</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-content">
+            <div id="waitingScreen" class="waiting-screen active">
+                <div class="waiting-animation">
+                    <div class="pulse-circle"></div>
+                    <div class="pulse-circle pulse-delay-1"></div>
+                    <div class="pulse-circle pulse-delay-2"></div>
+                </div>
+                <h2>Odaya Bağlanıyor...</h2>
+                <p>Sohbet odasına bağlanılıyor</p>
+                <div class="waiting-tips">
+                    <p>💡 <strong>İpucu:</strong> Saygılı olun ve eğlenceli sohbetler yapın!</p>
+                </div>
+            </div>
+
+            <div id="chatScreen" class="chat-screen">
+                <div id="messagesContainer" class="messages-container">
+                    <!-- Mesajlar buraya eklenecek -->
+                </div>
+
+                <div class="message-input-container">
+                    <div class="input-wrapper">
+                        <input type="text" id="messageInput" placeholder="Mesajınızı yazın..." maxlength="500" disabled>
+                        <button id="sendBtn" class="send-btn" disabled>
+                            <span>➤</span>
+                        </button>
+                    </div>
+                    <div class="input-info">
+                        <span id="charCount">0/500</span>
+                    </div>
+                </div>
+                
+                <div id="typingIndicator" class="typing-indicator">
+                    Biri yazıyor...
+                </div>
+                
+                <!-- Admin Kontrolleri -->
+                <div id="adminControls" class="admin-controls" style="display: none;">
+                    <div class="admin-badge">
+                        <span>🔑 Admin</span>
+                    </div>
+                    <div class="admin-actions">
+                        <button class="admin-btn" onclick="showUserList()">
+                            <span>👥 Kullanıcılar</span>
+                        </button>
+                        <button class="admin-btn" onclick="showModerationPanel()">
+                            <span>⚙️ Moderasyon</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="disconnectedScreen" class="disconnected-screen">
+                <div class="disconnected-content">
+                    <div class="disconnected-icon">🔌</div>
+                    <h2>Bağlantı Kesildi</h2>
+                    <p>Sohbet sonlandı veya bağlantı sorunu yaşandı</p>
+                    <div class="disconnected-actions">
+                        <button id="findNewChatBtn" class="primary-btn">
+                            <span>Yeni Sohbet</span>
+                        </button>
+                        <button id="homeBtn2" class="secondary-btn">
+                            <span>Ana Sayfa</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="chat.js"></script>
+</body>
+</html>

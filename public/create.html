@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oda Oluştur - PULSTAR</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="brand">
+                <h1 class="brand-title">PULSTAR</h1>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">Ana Sayfa</a>
+                <button id="themeToggle" class="theme-toggle" title="Tema Değiştir">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="create-container">
+            <div class="create-header">
+                <h1 class="create-title">Özel Oda Oluştur</h1>
+                <p class="create-subtitle">Arkadaşlarınızla özel sohbet odası oluşturun</p>
+            </div>
+
+            <div class="create-form">
+                <div class="form-section">
+                    <label for="roomNameInput" class="input-label">Oda Adı</label>
+                    <input type="text" id="roomNameInput" class="form-input" placeholder="Oda adını girin..." maxlength="30">
+                    <p class="input-note">3-30 karakter arası, özel karakterler kullanmayın</p>
+                </div>
+
+                <div class="form-section">
+                    <label for="usernameInput" class="input-label">Kullanıcı Adınız</label>
+                    <div class="username-input-group">
+                        <input type="text" id="usernameInput" class="form-input" placeholder="Kullanıcı adınızı girin..." maxlength="20">
+                        <button id="randomUsernameBtn" class="random-btn" title="Rastgele kullanıcı adı">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path d="M16 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6C4.89543 4 6 4 6 4H8M16 4L12 8L8 4M16 4V8H8V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="input-note">3-20 karakter arası, özel karakterler kullanmayın</p>
+                </div>
+
+                <div class="form-section">
+                    <label class="input-label">Oda Ayarları</label>
+                    <div class="room-settings">
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="checkbox" id="privateRoom" class="setting-checkbox">
+                                <span class="checkmark"></span>
+                                Özel Oda (Sadece kod ile katılım)
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="checkbox" id="moderatedRoom" class="setting-checkbox" checked>
+                                <span class="checkmark"></span>
+                                Moderasyonlu Oda (Küfür filtreleme)
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label for="maxUsers" class="setting-label-text">Maksimum Kullanıcı Sayısı:</label>
+                            <select id="maxUsers" class="setting-select">
+                                <option value="10">10 Kişi</option>
+                                <option value="25" selected>25 Kişi</option>
+                                <option value="50">50 Kişi</option>
+                                <option value="100">100 Kişi</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label for="roomDescription" class="input-label">Oda Açıklaması (İsteğe Bağlı)</label>
+                    <textarea id="roomDescription" class="form-textarea" placeholder="Oda hakkında kısa bir açıklama yazın..." rows="3" maxlength="200"></textarea>
+                    <p class="input-note">Maksimum 200 karakter</p>
+                </div>
+
+                <div class="create-actions">
+                    <button id="createRoomBtn" class="create-btn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Oda Oluştur
+                    </button>
+                    <a href="/join" class="join-existing-link">Veya mevcut odaya katıl</a>
+                </div>
+            </div>
+
+            <div class="room-preview" id="roomPreview" style="display: none;">
+                <h3>Oda Bilgileri</h3>
+                <div class="preview-content">
+                    <div class="preview-item">
+                        <strong>Oda Adı:</strong> <span id="previewRoomName"></span>
+                    </div>
+                    <div class="preview-item">
+                        <strong>Oda Kodu:</strong> <span id="previewRoomCode"></span>
+                    </div>
+                    <div class="preview-item">
+                        <strong>Yönetici:</strong> <span id="previewAdmin"></span>
+                    </div>
+                    <div class="preview-item">
+                        <strong>Maksimum Kullanıcı:</strong> <span id="previewMaxUsers"></span>
+                    </div>
+                    <div class="preview-actions">
+                        <button id="enterRoomBtn" class="enter-room-btn">Odaya Gir</button>
+                        <button id="copyRoomCodeBtn" class="copy-code-btn">Kodu Kopyala</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-info">
+                <h3>Oda Yöneticisi Yetkileri</h3>
+                <ul>
+                    <li>Kullanıcıları odadan atabilirsiniz</li>
+                    <li>Mesajları silebilirsiniz</li>
+                    <li>Oda ayarlarını değiştirebilirsiniz</li>
+                    <li>Kullanıcıları geçici olarak susturabilirsiniz</li>
+                    <li>Odayı kapatabilirsiniz</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tema değiştirme
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        body.classList.toggle('light-theme', savedTheme === 'light');
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            const currentTheme = body.classList.contains('light-theme') ? 'light' : 'dark';
+            localStorage.setItem('theme', currentTheme);
+        });
+
+        // DOM elementleri
+        const roomNameInput = document.getElementById('roomNameInput');
+        const usernameInput = document.getElementById('usernameInput');
+        const randomUsernameBtn = document.getElementById('randomUsernameBtn');
+        const privateRoom = document.getElementById('privateRoom');
+        const moderatedRoom = document.getElementById('moderatedRoom');
+        const maxUsers = document.getElementById('maxUsers');
+        const roomDescription = document.getElementById('roomDescription');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const roomPreview = document.getElementById('roomPreview');
+        const enterRoomBtn = document.getElementById('enterRoomBtn');
+        const copyRoomCodeBtn = document.getElementById('copyRoomCodeBtn');
+
+        // Rastgele kullanıcı adları
+        const randomUsernames = [
+            'OdaYöneticisi', 'AdminKullanıcı', 'ModeratorKişi', 'YöneticiKişi', 'AdminKişi',
+            'OdaAdmini', 'ModeratorUser', 'YöneticiUser', 'AdminUser', 'OdaKurucusu',
+            'KurucuKişi', 'YöneticiProfil', 'AdminProfil', 'ModeratorProfil', 'OdaLideri'
+        ];
+
+        // Rastgele kullanıcı adı oluştur
+        randomUsernameBtn.addEventListener('click', () => {
+            const randomName = randomUsernames[Math.floor(Math.random() * randomUsernames.length)];
+            const randomNumber = Math.floor(Math.random() * 999) + 1;
+            usernameInput.value = randomName + randomNumber;
+            checkFormValidity();
+        });
+
+        // Form doğrulama
+        function checkFormValidity() {
+            const roomName = roomNameInput.value.trim();
+            const username = usernameInput.value.trim();
+
+            const isValid = roomName.length >= 3 && roomName.length <= 30 &&
+                           username.length >= 3 && username.length <= 20;
+
+            createRoomBtn.disabled = !isValid;
+        }
+
+        // Input event listeners
+        roomNameInput.addEventListener('input', checkFormValidity);
+        usernameInput.addEventListener('input', checkFormValidity);
+
+        // Input filtreleme
+        roomNameInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ0-9\s]/g, '');
+        });
+
+        usernameInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ0-9]/g, '');
+        });
+
+        // Oda kodu oluştur
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Oda oluştur
+        createRoomBtn.addEventListener('click', () => {
+            const roomName = roomNameInput.value.trim();
+            const username = usernameInput.value.trim();
+            const isPrivate = privateRoom.checked;
+            const isModerated = moderatedRoom.checked;
+            const maxUsersCount = maxUsers.value;
+            const description = roomDescription.value.trim();
+
+            const roomCode = generateRoomCode();
+
+            // Oda bilgilerini localStorage'a kaydet
+            const roomData = {
+                name: roomName,
+                code: roomCode,
+                admin: username,
+                isPrivate: isPrivate,
+                isModerated: isModerated,
+                maxUsers: maxUsersCount,
+                description: description,
+                createdAt: new Date().toISOString()
+            };
+
+            localStorage.setItem('roomData', JSON.stringify(roomData));
+            localStorage.setItem('username', username);
+            localStorage.setItem('roomType', 'private');
+            localStorage.setItem('roomCode', roomCode);
+            localStorage.setItem('isAdmin', 'true');
+
+            // Oda önizlemesini göster
+            showRoomPreview(roomData);
+        });
+
+        // Oda önizlemesini göster
+        function showRoomPreview(roomData) {
+            document.getElementById('previewRoomName').textContent = roomData.name;
+            document.getElementById('previewRoomCode').textContent = roomData.code;
+            document.getElementById('previewAdmin').textContent = roomData.admin;
+            document.getElementById('previewMaxUsers').textContent = roomData.maxUsers + ' kişi';
+
+            roomPreview.style.display = 'block';
+            roomPreview.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Odaya gir
+        enterRoomBtn.addEventListener('click', () => {
+            window.location.href = '/chat';
+        });
+
+        // Oda kodunu kopyala
+        copyRoomCodeBtn.addEventListener('click', async () => {
+            const roomCode = document.getElementById('previewRoomCode').textContent;
+            try {
+                await navigator.clipboard.writeText(roomCode);
+                copyRoomCodeBtn.textContent = 'Kopyalandı!';
+                setTimeout(() => {
+                    copyRoomCodeBtn.textContent = 'Kodu Kopyala';
+                }, 2000);
+            } catch (err) {
+                console.error('Kopyalama hatası:', err);
+            }
+        });
+    </script>
+</body>
+</html>
