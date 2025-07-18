@@ -80,8 +80,8 @@ function canCreateRoom(userId) {
 }
 
 function createRoom(roomData, userId) {
-    // Spam limiti kontrolü
-    if (!canCreateRoom(userId)) {
+    // Spam limiti kontrolü (sistem kullanıcısı için atla)
+    if (userId !== 'SYSTEM' && !canCreateRoom(userId)) {
         throw new Error('Saatte en fazla 5 oda oluşturabilirsiniz!');
     }
     // Oda adı ve açıklama doğrulama + küfür filtresi
@@ -148,7 +148,7 @@ if (!rooms.has('GENERAL')) {
         maxUsers: 100,
         isModerated: true,
         isPrivate: false
-    });
+    }, 'SYSTEM');
 }
 
 // Rotalar
@@ -173,16 +173,21 @@ io.on('connection', (socket) => {
 
     // Kullanıcı odaya katılma
     socket.on('join-room', (data) => {
+        console.log('🔍 Join request:', data); // Debug
         const { username, roomCode, roomType } = data;
         let room;
 
         if (roomType === 'general') {
             room = rooms.get('GENERAL');
+            console.log('📍 General room found:', !!room); // Debug
         } else {
             room = rooms.get(roomCode);
+            console.log('📍 Private room search - Code:', roomCode, 'Found:', !!room); // Debug
+            console.log('📍 Available rooms:', Array.from(rooms.keys())); // Debug
         }
 
         if (!room) {
+            console.log('❌ Room not found - Type:', roomType, 'Code:', roomCode); // Debug
             socket.emit('room-error', { message: 'Oda bulunamadı!' });
             return;
         }
