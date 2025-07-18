@@ -458,6 +458,57 @@ io.on('connection', (socket) => {
         users.delete(socket.id);
     }
 
+    // Oda oluşturma
+    socket.on('create-room', (data) => {
+        try {
+            const { roomData, username } = data;
+            
+            // Oda oluştur
+            const room = createRoom(roomData, socket.id);
+            
+            // Kullanıcıyı odaya ekle ve admin yap
+            const user = {
+                id: socket.id,
+                username: username,
+                roomId: room.id,
+                isAdmin: true,
+                joinedAt: new Date(),
+                warnings: 0,
+                isMuted: false
+            };
+            
+            // Kullanıcı verilerini kaydet
+            users.set(socket.id, user);
+            room.users.set(socket.id, user);
+            
+            // Socket'i odaya ekle
+            socket.join(room.id);
+            
+            // Başarılı oda oluşturma yanıtı
+            socket.emit('room-created', {
+                success: true,
+                room: {
+                    id: room.id,
+                    name: room.name,
+                    description: room.description,
+                    category: room.category,
+                    maxUsers: room.maxUsers,
+                    isAdmin: true
+                },
+                redirectUrl: `/chat?room=${room.id}&admin=true`
+            });
+            
+            console.log(`✅ Oda oluşturuldu: ${room.name} (${room.id}) - Admin: ${username}`);
+            
+        } catch (error) {
+            console.error('❌ Oda oluşturma hatası:', error.message);
+            socket.emit('room-creation-error', {
+                success: false,
+                message: error.message
+            });
+        }
+    });
+
     // Oda listesi getirme (gelişmiş)
     socket.on('get-rooms', () => {
         const now = Date.now();
