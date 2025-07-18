@@ -138,10 +138,6 @@ function createRoom(roomData, userId) {
     return room;
 }
 
-    rooms.set(roomId, room);
-    console.log(`Yeni oda oluşturuldu: ${room.name} (${room.id}) - Admin: ${room.admin}`);
-    return room;
-
 
 // Genel sohbet odasını oluştur
 if (!rooms.has('GENERAL')) {
