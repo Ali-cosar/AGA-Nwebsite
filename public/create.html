@@ -264,26 +264,27 @@
             };
 
             // Sunucuya oda oluşturma isteği gönder
-            socket.emit('create-room', roomData);
+            socket.emit('create-room', { roomData, username });
             
             // Oda oluşturma yanıtını dinle
             socket.once('room-created', (response) => {
                 console.log('Oda oluşturuldu:', response);
-                // Oda bilgilerini localStorage'a kaydet
-                localStorage.setItem('roomData', JSON.stringify(response));
+                
+                // Kullanıcı bilgilerini localStorage'a kaydet
                 localStorage.setItem('username', username);
-                localStorage.setItem('roomType', response.isPrivate ? 'private' : 'public');
-                localStorage.setItem('roomCode', response.roomCode);
+                localStorage.setItem('roomId', response.room.id);
                 localStorage.setItem('isAdmin', 'true');
-                // Oda önizlemesini göster
-                showRoomPreview({
-                    ...roomData,
-                    code: response.roomCode
-                });
+                localStorage.setItem('roomType', 'private');
+                
+                // Başarı mesajı göster
+                alert(`Oda başarıyla oluşturuldu: ${response.room.name}\nOda Kodu: ${response.room.id}\nYönetici olarak sohbete yönlendiriliyorsunuz...`);
+                
+                // Chat sayfasına yönlendir (admin yetkisiyle)
+                window.location.href = response.redirectUrl;
             });
             
             // Hata durumunu dinle
-            socket.once('room-error', (error) => {
+            socket.once('room-creation-error', (error) => {
                 console.error('Oda oluşturma hatası:', error);
                 alert('Oda oluşturulamadı: ' + error.message);
             });
