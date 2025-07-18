@@ -137,46 +137,6 @@ function createRoom(roomData, userId) {
     rooms.set(roomId, room);
     return room;
 }
-    // Oda adı doğrulaması
-    if (!roomData.name || roomData.name.trim().length < 3 || roomData.name.trim().length > 30) {
-        throw new Error('Oda adı 3-30 karakter arasında olmalıdır');
-    }
-
-    // Oda kodu oluştur veya kontrol et
-    let roomId;
-    if (roomData.code) {
-        roomId = roomData.code.toUpperCase();
-        if (rooms.has(roomId)) {
-            throw new Error('Bu oda kodu zaten kullanılıyor');
-        }
-    } else {
-        // Benzersiz oda kodu oluştur
-        do {
-            roomId = uuidv4().substring(0, 6).toUpperCase();
-        } while (rooms.has(roomId));
-    }
-
-    // Oda verilerini temizle ve doğrula
-    const cleanName = roomData.name.trim();
-    const maxUsers = Math.min(Math.max(parseInt(roomData.settings?.maxUsers) || 25, 2), 100);
-    const description = roomData.settings?.description?.trim() || '';
-
-    const room = {
-        id: roomId,
-        name: cleanName,
-        type: roomData.type || 'private',
-        admin: roomData.admin || null,
-        users: new Map(),
-        messages: [],
-        settings: {
-            maxUsers: maxUsers,
-            isModerated: roomData.settings?.isModerated !== false,
-            isPrivate: roomData.settings?.isPrivate || false,
-            description: description.length > 200 ? description.substring(0, 200) : description
-        },
-        createdAt: new Date(),
-        lastActivity: new Date()
-    };
 
     rooms.set(roomId, room);
     console.log(`Yeni oda oluşturuldu: ${room.name} (${room.id}) - Admin: ${room.admin}`);
