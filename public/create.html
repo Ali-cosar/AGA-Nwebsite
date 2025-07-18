@@ -71,11 +71,37 @@
                         <div class="setting-item">
                             <label for="maxUsers" class="setting-label-text">Maksimum Kullanıcı Sayısı:</label>
                             <select id="maxUsers" class="setting-select">
+                                <option value="2">2 Kişi</option>
+                                <option value="5">5 Kişi</option>
                                 <option value="10">10 Kişi</option>
                                 <option value="25" selected>25 Kişi</option>
                                 <option value="50">50 Kişi</option>
-                                <option value="100">100 Kişi</option>
                             </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="roomCategory" class="setting-label-text">Kategori:</label>
+                            <select id="roomCategory" class="setting-select">
+                                <option value="genel">Genel</option>
+                                <option value="oyun">Oyun</option>
+                                <option value="müzik">Müzik</option>
+                                <option value="eğitim">Eğitim</option>
+                                <option value="sohbet">Sohbet</option>
+                                <option value="yardım">Yardım</option>
+                                <option value="diğer">Diğer</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="roomDuration" class="setting-label-text">Oda Süresi:</label>
+                            <select id="roomDuration" class="setting-select">
+                                <option value="1saat">1 Saat</option>
+                                <option value="6saat">6 Saat</option>
+                                <option value="1gün">1 Gün</option>
+                                <option value="süresiz" selected>Süresiz</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="roomPassword" class="setting-label-text">Oda Şifresi (İsteğe Bağlı):</label>
+                            <input type="password" id="roomPassword" class="form-input" maxlength="30" placeholder="Şifre (opsiyonel)">
                         </div>
                     </div>
                 </div>
@@ -132,7 +158,11 @@
         </div>
     </main>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        // Socket.IO bağlantısı
+        const socket = io();
+        
         // Tema değiştirme
         const themeToggle = document.getElementById('themeToggle');
         const body = document.body;
@@ -216,29 +246,47 @@
             const isModerated = moderatedRoom.checked;
             const maxUsersCount = maxUsers.value;
             const description = roomDescription.value.trim();
+            const category = document.getElementById('roomCategory').value;
+            const duration = document.getElementById('roomDuration').value;
+            const password = document.getElementById('roomPassword').value;
 
-            const roomCode = generateRoomCode();
-
-            // Oda bilgilerini localStorage'a kaydet
+            // Oda verilerini hazırla
             const roomData = {
                 name: roomName,
-                code: roomCode,
-                admin: username,
-                isPrivate: isPrivate,
-                isModerated: isModerated,
-                maxUsers: maxUsersCount,
+                username: username,
                 description: description,
-                createdAt: new Date().toISOString()
+                category: category,
+                maxUsers: parseInt(maxUsersCount),
+                password: password,
+                duration: duration,
+                isPrivate: isPrivate,
+                isModerated: isModerated
             };
 
-            localStorage.setItem('roomData', JSON.stringify(roomData));
-            localStorage.setItem('username', username);
-            localStorage.setItem('roomType', 'private');
-            localStorage.setItem('roomCode', roomCode);
-            localStorage.setItem('isAdmin', 'true');
-
-            // Oda önizlemesini göster
-            showRoomPreview(roomData);
+            // Sunucuya oda oluşturma isteği gönder
+            socket.emit('create-room', roomData);
+            
+            // Oda oluşturma yanıtını dinle
+            socket.once('room-created', (response) => {
+                console.log('Oda oluşturuldu:', response);
+                // Oda bilgilerini localStorage'a kaydet
+                localStorage.setItem('roomData', JSON.stringify(response));
+                localStorage.setItem('username', username);
+                localStorage.setItem('roomType', response.isPrivate ? 'private' : 'public');
+                localStorage.setItem('roomCode', response.roomCode);
+                localStorage.setItem('isAdmin', 'true');
+                // Oda önizlemesini göster
+                showRoomPreview({
+                    ...roomData,
+                    code: response.roomCode
+                });
+            });
+            
+            // Hata durumunu dinle
+            socket.once('room-error', (error) => {
+                console.error('Oda oluşturma hatası:', error);
+                alert('Oda oluşturulamadı: ' + error.message);
+            });
         });
 
         // Oda önizlemesini göster

@@ -14,6 +14,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Veri yapıları
 let rooms = new Map(); // roomId -> room data
 let users = new Map(); // socketId -> user data
+let waitingUsers = []; // Eşleşme bekleyen kullanıcılar
+let activeRooms = new Map(); // socketId -> { roomId, partnerId }
 
 // Küfür filtreleme listesi
 const profanityList = [
@@ -41,26 +43,145 @@ function generateRandomUsername() {
     return `${adj}${noun}${num}`;
 }
 
-// Oda oluşturma
-function createRoom(roomData) {
-    const roomId = roomData.code || uuidv4().substring(0, 6).toUpperCase();
+// Oda oluşturma (gelişmiş)
+const crypto = require('crypto');
+
+// Kullanıcı başına saatlik oda oluşturma limiti
+const ROOM_CREATION_LIMIT = 5;
+let userRoomCreationLog = new Map(); // userId -> [timestamp,...]
+
+// Oda kategorileri
+const ROOM_CATEGORIES = ['genel', 'oyun', 'müzik', 'eğitim', 'sohbet', 'yardım', 'diğer'];
+const ROOM_DURATIONS = {
+    '1saat': 60 * 60 * 1000,
+    '6saat': 6 * 60 * 60 * 1000,
+    '1gün': 24 * 60 * 60 * 1000,
+    'süresiz': null
+};
+
+function filterProfanityStrict(text) {
+    let filtered = filterProfanity(text);
+    if (filtered !== text) throw new Error('Küfürlü içerik kullanılamaz!');
+    return filtered;
+}
+
+function hashPassword(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function canCreateRoom(userId) {
+    const now = Date.now();
+    if (!userRoomCreationLog.has(userId)) userRoomCreationLog.set(userId, []);
+    let timestamps = userRoomCreationLog.get(userId).filter(ts => now - ts < 60 * 60 * 1000);
+    if (timestamps.length >= ROOM_CREATION_LIMIT) return false;
+    timestamps.push(now);
+    userRoomCreationLog.set(userId, timestamps);
+    return true;
+}
+
+function createRoom(roomData, userId) {
+    // Spam limiti kontrolü
+    if (!canCreateRoom(userId)) {
+        throw new Error('Saatte en fazla 5 oda oluşturabilirsiniz!');
+    }
+    // Oda adı ve açıklama doğrulama + küfür filtresi
+    if (!roomData.name || roomData.name.trim().length < 3 || roomData.name.trim().length > 30)
+        throw new Error('Oda adı 3-30 karakter arasında olmalı');
+    filterProfanityStrict(roomData.name);
+    let description = roomData.description?.trim() || '';
+    if (description.length > 100) description = description.substring(0, 100);
+    if (description) filterProfanityStrict(description);
+    // Kategori kontrolü
+    let category = roomData.category?.toLowerCase() || 'genel';
+    if (!ROOM_CATEGORIES.includes(category)) category = 'diğer';
+    // Maksimum kullanıcı
+    let maxUsers = parseInt(roomData.maxUsers) || 10;
+    maxUsers = Math.max(2, Math.min(maxUsers, 50));
+    // Oda süresi
+    let durationKey = roomData.duration || 'süresiz';
+    let duration = ROOM_DURATIONS[durationKey] ?? null;
+    // Şifre
+    let passwordHash = null;
+    if (roomData.password && roomData.password.length > 0) {
+        if (roomData.password.length < 3 || roomData.password.length > 30) throw new Error('Şifre 3-30 karakter olmalı');
+        passwordHash = hashPassword(roomData.password);
+    }
+    // Oda kodu benzersizliği
+    let roomId;
+    do {
+        roomId = (roomData.code || uuidv4().substring(0, 6)).toUpperCase();
+    } while (rooms.has(roomId));
+    // Oda nesnesi
+    const now = new Date();
     const room = {
         id: roomId,
-        name: roomData.name || 'Genel Sohbet',
-        type: roomData.type || 'general',
-        admin: roomData.admin || null,
+        name: roomData.name.trim(),
+        description,
+        category,
+        maxUsers,
+        passwordHash,
+        duration,
+        createdAt: now,
+        lastActivity: now,
+        admin: userId,
         users: new Map(),
         messages: [],
+        waitingList: [],
         settings: {
-            maxUsers: roomData.maxUsers || 50,
             isModerated: roomData.isModerated !== false,
-            isPrivate: roomData.isPrivate || false
+            isPrivate: !!roomData.isPrivate
         },
-        createdAt: new Date()
+        status: 'açık', // açık/dolu/şifreli
+        isActive: true
     };
     rooms.set(roomId, room);
     return room;
 }
+    // Oda adı doğrulaması
+    if (!roomData.name || roomData.name.trim().length < 3 || roomData.name.trim().length > 30) {
+        throw new Error('Oda adı 3-30 karakter arasında olmalıdır');
+    }
+
+    // Oda kodu oluştur veya kontrol et
+    let roomId;
+    if (roomData.code) {
+        roomId = roomData.code.toUpperCase();
+        if (rooms.has(roomId)) {
+            throw new Error('Bu oda kodu zaten kullanılıyor');
+        }
+    } else {
+        // Benzersiz oda kodu oluştur
+        do {
+            roomId = uuidv4().substring(0, 6).toUpperCase();
+        } while (rooms.has(roomId));
+    }
+
+    // Oda verilerini temizle ve doğrula
+    const cleanName = roomData.name.trim();
+    const maxUsers = Math.min(Math.max(parseInt(roomData.settings?.maxUsers) || 25, 2), 100);
+    const description = roomData.settings?.description?.trim() || '';
+
+    const room = {
+        id: roomId,
+        name: cleanName,
+        type: roomData.type || 'private',
+        admin: roomData.admin || null,
+        users: new Map(),
+        messages: [],
+        settings: {
+            maxUsers: maxUsers,
+            isModerated: roomData.settings?.isModerated !== false,
+            isPrivate: roomData.settings?.isPrivate || false,
+            description: description.length > 200 ? description.substring(0, 200) : description
+        },
+        createdAt: new Date(),
+        lastActivity: new Date()
+    };
+
+    rooms.set(roomId, room);
+    console.log(`Yeni oda oluşturuldu: ${room.name} (${room.id}) - Admin: ${room.admin}`);
+    return room;
+
 
 // Genel sohbet odasını oluştur
 if (!rooms.has('GENERAL')) {
@@ -150,18 +271,56 @@ io.on('connection', (socket) => {
 
     // Oda oluşturma
     socket.on('create-room', (data) => {
-        const room = createRoom({
-            ...data,
-            admin: socket.id
-        });
-
-        socket.emit('room-created', {
-            roomId: room.id,
-            roomName: room.name,
-            roomCode: room.id
-        });
-
-        console.log(`Yeni oda oluşturuldu: ${room.name} (${room.id})`);
+        try {
+            // Kullanıcı adı doğrulama ve spam limiti
+            if (!data.username || data.username.trim().length < 3 || data.username.trim().length > 20) {
+                socket.emit('room-error', { message: 'Kullanıcı adı 3-20 karakter arasında olmalı' });
+                return;
+            }
+            filterProfanityStrict(data.username);
+            // Oda oluştur (tüm parametrelerle)
+            const room = createRoom({
+                name: data.name,
+                description: data.description,
+                category: data.category,
+                maxUsers: data.maxUsers,
+                password: data.password,
+                duration: data.duration,
+                isModerated: data.isModerated,
+                isPrivate: data.isPrivate
+            }, socket.id);
+            // Oda sahibini odaya ekle
+            const user = {
+                id: socket.id,
+                username: data.username.trim(),
+                joinedAt: new Date(),
+                isAdmin: true,
+                warnings: 0,
+                isMuted: false
+            };
+            users.set(socket.id, { ...user, roomId: room.id });
+            room.users.set(socket.id, user);
+            socket.join(room.id);
+            // Yanıtı gönder
+            socket.emit('room-created', {
+                success: true,
+                roomId: room.id,
+                roomName: room.name,
+                roomCode: room.id,
+                settings: room.settings,
+                createdAt: room.createdAt,
+                category: room.category,
+                maxUsers: room.maxUsers,
+                description: room.description,
+                duration: room.duration,
+                isPrivate: room.settings.isPrivate,
+                isModerated: room.settings.isModerated
+            });
+            console.log(`✅ Oda oluşturuldu: ${room.name} (${room.id}) - Admin: ${user.username}`);
+        } catch (error) {
+            console.error('❌ Oda oluşturma hatası:', error.message);
+            socket.emit('room-error', { message: error.message || 'Oda oluşturulamadı' });
+        }
     });
 
     // Mesaj gönderme
@@ -338,16 +497,25 @@ io.on('connection', (socket) => {
         users.delete(socket.id);
     }
 
-    // Oda listesi getirme
+    // Oda listesi getirme (gelişmiş)
     socket.on('get-rooms', () => {
+        const now = Date.now();
         const roomList = Array.from(rooms.values()).map(room => ({
             id: room.id,
             name: room.name,
+            category: room.category,
             userCount: room.users.size,
-            maxUsers: room.settings.maxUsers,
-            isPrivate: room.settings.isPrivate
+            maxUsers: room.maxUsers,
+            status: room.status,
+            isPrivate: room.settings.isPrivate,
+            isModerated: room.settings.isModerated,
+            description: room.description,
+            lastActivity: room.lastActivity,
+            passwordProtected: !!room.passwordHash,
+            createdAt: room.createdAt,
+            duration: room.duration
         }));
-        socket.emit('rooms-list', roomList);
+        socket.emit('room-list', roomList);
     });
 
     socket.on('find-partner', () => {

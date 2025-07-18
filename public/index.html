@@ -49,6 +49,56 @@
             </div>
         </section>
 
+        <!-- ODA LİSTESİ BAŞLANGIÇ -->
+        <section class="roomlist-section" id="roomlist">
+            <div class="section-container">
+                <h2 class="section-title">Aktif Odalar</h2>
+                <div class="roomlist-filters">
+                    <label>Kategori:
+                        <select id="filterCategory">
+                            <option value="">Tümü</option>
+                            <option value="genel">Genel</option>
+                            <option value="oyun">Oyun</option>
+                            <option value="müzik">Müzik</option>
+                            <option value="eğitim">Eğitim</option>
+                            <option value="sohbet">Sohbet</option>
+                            <option value="yardım">Yardım</option>
+                            <option value="diğer">Diğer</option>
+                        </select>
+                    </label>
+                    <label>Durum:
+                        <select id="filterStatus">
+                            <option value="">Tümü</option>
+                            <option value="açık">Açık</option>
+                            <option value="dolu">Dolu</option>
+                            <option value="şifreli">Şifreli</option>
+                        </select>
+                    </label>
+                    <button id="refreshRoomsBtn">Yenile</button>
+                </div>
+                <div class="roomlist-table-container">
+                    <table class="roomlist-table">
+                        <thead>
+                            <tr>
+                                <th>Oda Adı</th>
+                                <th>Kategori</th>
+                                <th>Katılımcı</th>
+                                <th>Durum</th>
+                                <th>Şifre</th>
+                                <th>Açıklama</th>
+                                <th>Son Aktivite</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="roomListBody">
+                            <tr><td colspan="8">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <!-- ODA LİSTESİ BİTİŞ -->
+
         <section class="features-section" id="features">
             <div class="section-container">
                 <h2 class="section-title">Platform Özellikleri</h2>
@@ -117,6 +167,7 @@
 
     </main>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         // Tema değiştirme
         const themeToggle = document.getElementById('themeToggle');
@@ -176,6 +227,53 @@
                 document.getElementById('submitFeedback').click();
             }
         });
+    // --- ODA LİSTESİ JS ---
+    const socket = io();
+    const roomListBody = document.getElementById('roomListBody');
+    const filterCategory = document.getElementById('filterCategory');
+    const filterStatus = document.getElementById('filterStatus');
+    const refreshRoomsBtn = document.getElementById('refreshRoomsBtn');
+
+    function fetchRooms() {
+        socket.emit('get-rooms');
+    }
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        return d.toLocaleString('tr-TR', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+    }
+    function renderRooms(rooms) {
+        let filtered = rooms;
+        if (filterCategory.value) filtered = filtered.filter(r => r.category === filterCategory.value);
+        if (filterStatus.value) {
+            if(filterStatus.value==="şifreli") filtered = filtered.filter(r=>r.passwordProtected);
+            else filtered = filtered.filter(r=>r.status===filterStatus.value);
+        }
+        if (!filtered.length) {
+            roomListBody.innerHTML = '<tr><td colspan="8">Oda bulunamadı.</td></tr>';
+            return;
+        }
+        roomListBody.innerHTML = filtered.map(room => `
+            <tr>
+                <td>${room.name}</td>
+                <td>${room.category}</td>
+                <td>${room.userCount} / ${room.maxUsers}</td>
+                <td>${room.status.charAt(0).toUpperCase()+room.status.slice(1)}</td>
+                <td>${room.passwordProtected ? '<span title="Şifreli">🔒</span>' : ''}</td>
+                <td>${room.description || '-'}</td>
+                <td>${formatDate(room.lastActivity || room.createdAt)}</td>
+                <td><button onclick="window.location.href='/join?code=${room.id}'">Katıl</button></td>
+            </tr>
+        `).join('');
+    }
+    socket.on('room-list', renderRooms);
+    filterCategory.addEventListener('change', fetchRooms);
+    filterStatus.addEventListener('change', fetchRooms);
+    refreshRoomsBtn.addEventListener('click', fetchRooms);
+    // İlk yüklemede odaları getir
+    fetchRooms();
+    // 10sn'de bir otomatik güncelle
+    setInterval(fetchRooms, 10000);
+    // --- ODA LİSTESİ JS SONU ---
     </script>
 </body>
 </html>
